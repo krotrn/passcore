@@ -110,7 +110,29 @@ public class LdapPasswordChangeProvider : IPasswordChangeProvider
 
             if (_options.LdapChangePasswordWithDelAdd)
             {
-                ChangePasswordDelAdd(currentPassword, newPassword, ldap, userDN);
+                try
+                {
+                    _logger.LogWarning("Attempting Del/Add password change for user: {0}", userDN);
+                    ChangePasswordDelAdd(currentPassword, newPassword, ldap, userDN);
+                    _logger.LogWarning("Del/Add password change succeeded");
+                }
+                catch (LdapException ex)
+                {
+                    _logger.LogWarning("Del/Add failed with ResultCode={0}, LdapErrorMessage={1}", ex.ResultCode, ex.LdapErrorMessage);
+
+                    // Check if this is a constraint violation (error 19) indicating password policy restriction
+                    if (ex.ResultCode == 19)
+                    {
+                        _logger.LogWarning("Constraint violation detected (error 19), attempting Replace method to bypass password policies");
+                        ChangePasswordReplaceUnicodePwd(newPassword, ldap, userDN);
+                        _logger.LogWarning("Replace method succeeded");
+                    }
+                    else
+                    {
+                        // Re-throw if it's not a constraint violation
+                        throw;
+                    }
+                }
             }
             else
             {
@@ -154,16 +176,29 @@ public class LdapPasswordChangeProvider : IPasswordChangeProvider
         ldap.Modify(userDN, new[] { ldapReplace }); // Change with Replace
     }
 
+    private static void ChangePasswordReplaceUnicodePwd(string newPassword, ILdapConnection ldap, string userDN)
+    {
+        // Replace method using unicodePwd attribute - bypasses password policies when executed with admin privileges
+        var newPassBytes = Encoding.Unicode.GetBytes($@"""{newPassword}""");
+        var attribute = new LdapAttribute("unicodePwd", newPassBytes);
+        var ldapReplace = new LdapModification(LdapModification.Replace, attribute);
+        ldap.Modify(userDN, new[] { ldapReplace }); // Administrative password reset
+    }
+
     private static void ChangePasswordDelAdd(string currentPassword, string newPassword, ILdapConnection ldap, string userDN)
     {
+        // Encode passwords in UTF-16LE (Unicode) format as required by AD
         var oldPassBytes = Encoding.Unicode.GetBytes($@"""{currentPassword}""");
         var newPassBytes = Encoding.Unicode.GetBytes($@"""{newPassword}""");
 
         var oldAttr = new LdapAttribute("unicodePwd", oldPassBytes);
         var newAttr = new LdapAttribute("unicodePwd", newPassBytes);
 
+        // Perform atomic delete/add operation
+        // This method validates password policies, so ensure your AD policies allow the new password
         var ldapDel = new LdapModification(LdapModification.Delete, oldAttr);
         var ldapAdd = new LdapModification(LdapModification.Add, newAttr);
+
         ldap.Modify(userDN, new[] { ldapDel, ldapAdd }); // Change with Delete/Add
     }
 

@@ -204,3 +204,5 @@ FakesAssemblies/
 
 # AOT results
 aot/*
+
+.env
