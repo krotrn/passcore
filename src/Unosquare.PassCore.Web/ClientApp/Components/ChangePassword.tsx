@@ -1,11 +1,37 @@
-import Button from '@material-ui/core/Button/Button';
-import Paper from '@material-ui/core/Paper/Paper';
+import { Button, Paper } from '@material-ui/core';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { ValidatorForm } from 'uno-react';
 import { ChangePasswordDialog } from '../Dialogs/ChangePasswordDialog';
 import { GlobalContext, SnackbarContext } from '../Provider/GlobalContext';
 import { fetchRequest } from '../Utils/FetchRequest';
 import { ChangePasswordForm } from './ChangePasswordForm';
+
+// Define styles using makeStyles
+const useStyles = makeStyles((theme: Theme) => {
+    const hasRecaptcha = (props: { hasRecaptcha: boolean; }) => props.hasRecaptcha;
+
+    return createStyles({
+        paper: {
+            borderRadius: '10px',
+            marginTop: theme.spacing(10),
+            width: '100%',
+            padding: theme.spacing(3, 4),
+            zIndex: 1,
+        },
+        form: {
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center', // This will center the submit button
+        },
+        submitButton: {
+            // Use the prop to set margin
+            marginTop: hasRecaptcha ? theme.spacing(3) : theme.spacing(5),
+            width: '240px',
+        },
+    });
+});
 
 export const ChangePassword: React.FunctionComponent<{}> = () => {
     const [disabled, setDisabled] = React.useState(true);
@@ -18,8 +44,9 @@ export const ChangePassword: React.FunctionComponent<{}> = () => {
     const { sendMessage } = React.useContext(SnackbarContext);
     const [shouldReset, setReset] = React.useState(false);
 
+    // Pass a prop to useStyles
+    const classes = useStyles({ hasRecaptcha: !!(recaptcha.siteKey && recaptcha.siteKey !== '') });
     const onSubmitValidatorForm = () => setSubmit(true);
-
     const toSubmitData = (formData: {}) => {
         setDisabled(true);
         fetchRequest('api/password', 'POST', JSON.stringify({ ...formData, Recaptcha: token })).then(
@@ -85,35 +112,22 @@ export const ChangePassword: React.FunctionComponent<{}> = () => {
         setReset(true);
     };
 
-    const marginButton = recaptcha.siteKey && recaptcha.siteKey !== '' ? '25px 0 0 180px' : '100px 0 0 180px';
-
     ValidatorForm.addValidationRule('isUserName', (value: string) =>
         new RegExp(validationRegex.usernameRegex).test(value),
     );
-
     ValidatorForm.addValidationRule('isUserEmail', (value: string) =>
         new RegExp(validationRegex.emailRegex).test(value),
     );
-
     ValidatorForm.addValidationRule('isPasswordMatch', (value: string, comparedValue: any) => value === comparedValue);
-
     return (
         <>
-            <Paper
-                style={{
-                    borderRadius: '10px',
-                    height: '550px',
-                    marginTop: '75px',
-                    width: '650px',
-                    zIndex: 1,
-                }}
-                elevation={6}
-            >
+            <Paper className={classes.paper} elevation={6}>
                 <ValidatorForm
                     ref={validatorFormRef}
                     autoComplete="off"
                     instantValidate={true}
                     onSubmit={onSubmitValidatorForm}
+                    className={classes.form}
                 >
                     <ChangePasswordForm
                         submitData={submit}
@@ -130,10 +144,7 @@ export const ChangePassword: React.FunctionComponent<{}> = () => {
                         variant="contained"
                         color="primary"
                         disabled={disabled}
-                        style={{
-                            margin: marginButton,
-                            width: '240px',
-                        }}
+                        className={classes.submitButton}
                     >
                         {changePasswordButtonLabel}
                     </Button>

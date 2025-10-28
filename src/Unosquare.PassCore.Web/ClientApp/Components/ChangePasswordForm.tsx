@@ -1,4 +1,6 @@
-import FormGroup from '@material-ui/core/FormGroup/FormGroup';
+// ChangePasswordForm.tsx
+import { FormGroup } from '@material-ui/core';
+import { makeStyles, Theme, createStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { TextValidator } from 'uno-material-ui';
 import { useStateForModel } from 'uno-react';
@@ -16,6 +18,29 @@ const defaultState: IChangePasswordFormInitialModel = {
     Username: new URLSearchParams(window.location.search).get('userName') || '',
 };
 
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        formGroup: {
+            width: '100%', // Was 80% + margin
+            margin: 0,
+        },
+        textField: {
+            // Replaces all the inline margin/height styles
+            marginBottom: theme.spacing(3),
+        },
+        newPasswordHelp: {
+            font: '12px Roboto,Helvetica, Arial, sans-serif',
+            marginBottom: theme.spacing(2),
+            color: theme.palette.text.secondary, // Get text color from theme
+        },
+        recaptchaContainer: {
+            marginTop: theme.spacing(3),
+            display: 'flex',
+            justifyContent: 'center', // Center recaptcha
+        },
+    }),
+);
+
 export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProps> = ({
     submitData,
     toSubmitData,
@@ -26,11 +51,13 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
     setReCaptchaToken,
     ReCaptchaToken,
 }: IChangePasswordFormProps) => {
+    const classes = useStyles();
     const [fields, handleChange] = useStateForModel({ ...defaultState });
 
     const { changePasswordForm, errorsPasswordForm, usePasswordGeneration, useEmail, showPasswordMeter, recaptcha } =
         React.useContext(GlobalContext);
 
+    // ... (All your logic and variables remain the same) ...
     const {
         currentPasswordHelpblock,
         currentPasswordLabel,
@@ -84,12 +111,10 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
         });
 
     return (
-        <FormGroup row={false} style={{ width: '80%', margin: '15px 0 0 10%' }}>
+        <FormGroup row={false} className={classes.formGroup}>
             <TextValidator
                 autoFocus={true}
-                inputProps={{
-                    tabIndex: 1,
-                }}
+                inputProps={{ tabIndex: 1 }}
                 id="Username"
                 label={usernameLabel}
                 helperText={userNameHelperText}
@@ -97,17 +122,13 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
                 onChange={handleChange}
                 validators={userNameValidations}
                 value={fields.Username}
-                style={{
-                    height: '20px',
-                    margin: '15px 0 50px 0',
-                }}
+                className={classes.textField}
+                margin="normal"
                 fullWidth={true}
                 errorMessages={userNameErrorMessages}
             />
             <TextValidator
-                inputProps={{
-                    tabIndex: 2,
-                }}
+                inputProps={{ tabIndex: 2 }}
                 label={currentPasswordLabel}
                 helperText={currentPasswordHelpblock}
                 id="CurrentPassword"
@@ -116,10 +137,8 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
                 type="password"
                 validators={['required']}
                 value={fields.CurrentPassword}
-                style={{
-                    height: '20px',
-                    marginBottom: '50px',
-                }}
+                className={classes.textField}
+                margin="normal"
                 fullWidth={true}
                 errorMessages={[fieldRequired]}
             />
@@ -128,9 +147,7 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
             ) : (
                 <>
                     <TextValidator
-                        inputProps={{
-                            tabIndex: 3,
-                        }}
+                        inputProps={{ tabIndex: 3 }}
                         label={newPasswordLabel}
                         id="NewPassword"
                         name="NewPassword"
@@ -138,22 +155,18 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
                         type="password"
                         validators={['required']}
                         value={fields.NewPassword}
-                        style={{
-                            height: '20px',
-                            marginBottom: '30px',
-                        }}
+                        className={classes.textField}
+                        margin="normal"
                         fullWidth={true}
                         errorMessages={[fieldRequired]}
                     />
                     {showPasswordMeter && <PasswordStrengthBar newPassword={fields.NewPassword} />}
                     <div
                         dangerouslySetInnerHTML={{ __html: newPasswordHelpblock }}
-                        style={{ font: '12px Roboto,Helvetica, Arial, sans-serif', marginBottom: '15px' }}
+                        className={classes.newPasswordHelp}
                     />
                     <TextValidator
-                        inputProps={{
-                            tabIndex: 4,
-                        }}
+                        inputProps={{ tabIndex: 4 }}
                         label={newPasswordVerifyLabel}
                         helperText={newPasswordVerifyHelpblock}
                         id="NewPasswordVerify"
@@ -162,10 +175,8 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
                         type="password"
                         validators={['required', `isPasswordMatch:${fields.NewPassword}`]}
                         value={fields.NewPasswordVerify}
-                        style={{
-                            height: '20px',
-                            marginBottom: '50px',
-                        }}
+                        className={classes.textField}
+                        margin="normal"
                         fullWidth={true}
                         errorMessages={[fieldRequired, passwordMatch]}
                     />
@@ -173,7 +184,9 @@ export const ChangePasswordForm: React.FunctionComponent<IChangePasswordFormProp
             )}
 
             {recaptcha.siteKey && recaptcha.siteKey !== '' && (
-                <ReCaptcha setToken={setReCaptchaToken} shouldReset={false} />
+                <div className={classes.recaptchaContainer}>
+                    <ReCaptcha setToken={setReCaptchaToken} shouldReset={false} />
+                </div>
             )}
         </FormGroup>
     );

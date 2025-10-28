@@ -1,57 +1,58 @@
-import LinearProgress from '@material-ui/core/LinearProgress';
-import makeStyles from '@material-ui/core/styles/makeStyles';
+// PasswordStrengthBar.tsx
+import { LinearProgress } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import * as zxcvbn from 'zxcvbn';
+import * as zxcvbn from 'zxcvbn'; // Keep this import as is
 
 const useStyles = makeStyles({
-    progressBar: {
-        color: '#000000',
-        display: 'flex',
-        flexGrow: 1,
-    },
-    progressBarColorHigh: {
-        backgroundColor: '#4caf50',
-    },
-    progressBarColorLow: {
-        backgroundColor: '#ff5722',
-    },
-    progressBarColorMedium: {
-        backgroundColor: '#ffc107',
-    },
+  progressBar: {
+    color: '#000000',
+    display: 'flex',
+    flexGrow: 1,
+  },
+  progressBarColorHigh: {
+    backgroundColor: '#4caf50',
+  },
+  progressBarColorLow: {
+    backgroundColor: '#ff5722',
+  },
+  progressBarColorMedium: {
+    backgroundColor: '#ffc107',
+  },
 });
 
 const measureStrength = (password: string): number =>
-    Math.min(
-        // @ts-expect-error
-        zxcvbn.default(password).guesses_log10 * 10,
-        100,
-    );
+  Math.min(
+    // @ts-expect-error
+    (zxcvbn.default(password) || zxcvbn(password)).guesses_log10 * 10,
+    100,
+  );
 
 interface IStrengthBarProps {
-    newPassword: string;
+  newPassword: string;
 }
 
 export const PasswordStrengthBar: React.FunctionComponent<IStrengthBarProps> = ({ newPassword }: IStrengthBarProps) => {
-    const classes = useStyles({});
+  const classes = useStyles({});
 
-    const getProgressColor = (strength: number) => ({
-        barColorPrimary:
-            strength < 33
-                ? classes.progressBarColorLow
-                : strength < 66
-                ? classes.progressBarColorMedium
-                : classes.progressBarColorHigh,
-    });
+  const getProgressColor = (strength: number) => ({
+    barColorPrimary:
+      strength < 33
+        ? classes.progressBarColorLow
+        : strength < 66
+        ? classes.progressBarColorMedium
+        : classes.progressBarColorHigh,
+  });
 
-    const newStrength = measureStrength(newPassword);
-    const primeColor = getProgressColor(newStrength);
+  const newStrength = measureStrength(newPassword);
+  const primeColor = getProgressColor(newStrength);
 
-    return (
-        <LinearProgress
-            classes={primeColor}
-            variant="determinate"
-            value={newStrength}
-            className={classes.progressBar}
-        />
-    );
+  return (
+    <LinearProgress
+      classes={primeColor}
+      variant="determinate"
+      value={newStrength}
+      className={classes.progressBar}
+    />
+  );
 };
