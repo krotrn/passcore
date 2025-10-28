@@ -28,14 +28,14 @@ export const Footer: React.FunctionComponent<any> = () => {
           <img src={nitLogo} className={classes.logo} />
         </Grid>
       </Grid>
-      <Grid alignItems="center" container={true} direction="column" justify="space-evenly">
+      {/* <Grid alignItems="center" container={true} direction="column" justify="space-evenly">
         <Typography align="center" variant="caption">
           brought to you by CSE 2023-27 Batch
         </Typography>
         <Typography align="center" variant="caption">
           Copyright © CSE@NITAP 2023-27
         </Typography>
-      </Grid>
+      </Grid> */}
     </div>
   );
 };
