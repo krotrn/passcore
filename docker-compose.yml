@@ -4,14 +4,5 @@ services:
     container_name: passcore-nitap-gc
     ports:
       - "8080:80"
-    environment:
-      - AppSettings__LdapHostnames__0=172.16.17.20
-      - AppSettings__LdapPort=636
-      - AppSettings__LdapSecureSocketLayer=true
-      - AppSettings__LdapUsername=rajat@nitap.ac.in
-      - AppSettings__LdapPassword=asdf@1234
-      - AppSettings__DefaultDomain=nitap.ac.in
-      - AppSettings__UseAutomaticContext=False
-      - AppSettings__LdapSearchBase=CN=Users,DC=nitap,DC=ac,DC=in
-      - AppSettings__LdapIgnoreTlsErrors=true
-      - AppSettings__LdapChangePasswordWithDelAdd=true
+    env_file:
+      - .env
