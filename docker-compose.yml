@@ -6,3 +6,13 @@ services:
       - "80:80"
     env_file:
       - .env
+    networks:
+      - ad-net
+
+
+networks:
+  ad-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.11.0.0/16
