@@ -3,6 +3,6 @@ services:
     build: .
     container_name: passcore-nitap-gc
     ports:
-      - "8080:80"
+      - "80:80"
     env_file:
       - .env
